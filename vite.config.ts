@@ -26,9 +26,16 @@ export default defineConfig(({ mode }) => {
         minify: 'esbuild', // Use esbuild for faster builds (included with Vite)
         rollupOptions: {
           output: {
-            manualChunks: {
-              'vendor-react': ['react', 'react-dom'],
-              'vendor-genai': ['@google/genai'],
+            manualChunks: (id) => {
+              // Safely split vendor chunks with error handling
+              if (id.includes('node_modules')) {
+                if (id.includes('react') || id.includes('react-dom')) {
+                  return 'vendor-react';
+                }
+                if (id.includes('@google/genai')) {
+                  return 'vendor-genai';
+                }
+              }
             }
           }
         },

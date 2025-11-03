@@ -33,6 +33,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate environment
+        run: |
+          if [ -z "${{ secrets.VITE_GEMINI_API_KEY }}" ]; then
+            echo "Warning: VITE_GEMINI_API_KEY is not set. The app will work but AI features will be disabled."
+          else
+            echo "VITE_GEMINI_API_KEY is configured"
+          fi
+
       - name: Run type check
         run: npm run typecheck
 
