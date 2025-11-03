@@ -1,0 +1,18 @@
+{
+  "name": "SVG Animation Learning Path",
+  "short_name": "SVG Learning",
+  "description": "A comprehensive guide for developers to master interactive SVG animations with AI-powered tools",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["education", "development"],
+  "orientation": "portrait-primary"
+}

@@ -12,7 +12,6 @@ export default class ErrorBoundary extends React.Component<React.PropsWithChildr
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    // eslint-disable-next-line no-console
     console.error('UI ErrorBoundary caught:', error, errorInfo);
   }
 
