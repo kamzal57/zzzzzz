@@ -2,48 +2,132 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# SVG Animation Learning Path
 
-This contains everything you need to run your app locally.
+Une application web interactive pour maîtriser les animations SVG avec l'IA.
 
 View your app in AI Studio: https://ai.studio/apps/drive/1LeblVpf2YyFam0ZHAxYeSw81AYZykOq_
 
-## Run Locally
+## Exécution Locale
 
-**Prerequisites:**  Node.js
+**Prérequis:** Node.js 18+
 
+1. **Installer les dépendances:**
+   ```bash
+   npm install
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `VITE_GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key (see `.env.example`)
-3. Run the app:
-   `npm run dev`
+2. **Configurer la clé API Gemini:**
+   - Créez un fichier `.env.local` à la racine du projet
+   - Obtenez votre clé API sur: https://aistudio.google.com/app/apikey
+   - Ajoutez votre clé:
+     ```
+     VITE_GEMINI_API_KEY=votre_clé_api_ici
+     ```
 
-### Preview production locally
+3. **Démarrer le serveur de développement:**
+   ```bash
+   npm run dev
+   ```
+   L'application sera accessible sur http://localhost:3000
 
-1. Build:
-    `npm run build`
-2. Preview:
-    `npm run preview`
-3. Ouvrez l’URL affichée (par défaut http://localhost:4173/)
+## Prévisualisation en mode production
 
-## Deploy
+1. **Build de l'application:**
+   ```bash
+   npm run build
+   ```
 
-Vous pouvez déployer facilement cette app statique (Vite) sur plusieurs plateformes:
+2. **Prévisualiser la version de production:**
+   ```bash
+   npm run preview
+   ```
+   L'application sera accessible sur http://localhost:4173/
 
-- Netlify
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-   - Ajoutez `VITE_GEMINI_API_KEY` dans les variables d’environnement du site
+3. **Vérification de la qualité du code:**
+   ```bash
+   npm run lint        # Vérifier le style de code
+   npm run typecheck   # Vérifier les types TypeScript
+   ```
 
-- Vercel
-   - Framework Preset: Vite
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Variables d’environnement: ajoutez `VITE_GEMINI_API_KEY`
+## Déploiement
 
-- GitHub Pages
-   - Build localement: `npm run build`
-   - Poussez le dossier `dist` sur une branche `gh-pages` (via une action GitHub ou manuellement)
-   - Servez la branche `gh-pages` dans les paramètres du repo
-   - Note: Les variables d’environnement côté client doivent être inlinées au build (assurez-vous que `VITE_GEMINI_API_KEY` est présent à la compilation)
+Cette application statique (Vite + React) peut être déployée sur plusieurs plateformes:
+
+### Netlify
+
+1. Connectez votre repository GitHub à Netlify
+2. Configuration de build:
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+3. Variables d'environnement:
+   - Ajoutez `VITE_GEMINI_API_KEY` avec votre clé API dans les paramètres du site
+
+### Vercel
+
+1. Importez votre projet depuis GitHub
+2. Configuration (détectée automatiquement):
+   - **Framework Preset:** Vite
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. Variables d'environnement:
+   - Ajoutez `VITE_GEMINI_API_KEY` dans les paramètres du projet
+
+### GitHub Pages
+
+1. **Méthode avec GitHub Actions** (recommandée):
+   - Créez `.github/workflows/deploy.yml`:
+     ```yaml
+     name: Deploy to GitHub Pages
+     on:
+       push:
+         branches: [ main ]
+     jobs:
+       build-and-deploy:
+         runs-on: ubuntu-latest
+         steps:
+           - uses: actions/checkout@v3
+           - uses: actions/setup-node@v3
+             with:
+               node-version: 18
+           - run: npm ci
+           - run: npm run build
+             env:
+               VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+           - uses: peaceiris/actions-gh-pages@v3
+             with:
+               github_token: ${{ secrets.GITHUB_TOKEN }}
+               publish_dir: ./dist
+     ```
+   - Ajoutez `VITE_GEMINI_API_KEY` dans les Secrets du repository
+
+2. **Méthode manuelle:**
+   - Build avec votre clé API: `VITE_GEMINI_API_KEY=votre_clé npm run build`
+   - Déployez le dossier `dist` sur la branche `gh-pages`
+   - Activez GitHub Pages dans les paramètres du repository
+
+### Autres plateformes (Cloudflare Pages, Render, etc.)
+
+Configuration générale:
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Variable d'environnement:** `VITE_GEMINI_API_KEY`
+
+## Fonctionnalités
+
+- 🎨 **Générateur SVG avec IA** - Créez des SVG à partir de descriptions textuelles
+- 🔧 **Optimiseur SVG** - Réduisez la taille de vos fichiers SVG
+- 🤖 **Analyseur de code** - Comprenez votre code SVG grâce à l'IA
+- 📚 **Parcours d'apprentissage** - Modules progressifs pour maîtriser les animations SVG
+
+## Technologies
+
+- React 19 + TypeScript
+- Vite 6
+- Tailwind CSS
+- Google Gemini AI
+- SVGO pour l'optimisation
+
+## Licence
+
+Ce projet est open source.
