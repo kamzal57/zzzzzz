@@ -21,6 +21,8 @@ const Optimizer: React.FC = () => {
     const [isDragging, setIsDragging] = useState<boolean>(false);
     const [isExplaining, setIsExplaining] = useState<boolean>(false);
     const [explanation, setExplanation] = useState<string>('');
+    const [copyOk, setCopyOk] = useState<boolean>(false);
+    const [copyOriginalOk, setCopyOriginalOk] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const resetState = () => {
@@ -63,6 +65,7 @@ const Optimizer: React.FC = () => {
         setOptimizedSvg('');
         setError('');
         try {
+            // @ts-expect-error Using SVGO browser build from CDN; types are not available for this path
             const { optimize } = await import('https://cdn.jsdelivr.net/npm/svgo@3.3.2/dist/svgo.browser.mjs');
             const result = optimize(originalSvg, {
                 multipass: true,
@@ -114,6 +117,20 @@ const Optimizer: React.FC = () => {
         URL.revokeObjectURL(url);
     };
 
+    const handleCopyOptimized = () => {
+        if (!optimizedSvg) return;
+        navigator.clipboard.writeText(optimizedSvg).then(() => {
+            setCopyOk(true);
+            setTimeout(() => setCopyOk(false), 2000);
+        });
+    };
+
+    const handleOpenOptimized = () => {
+        if (!optimizedSvg) return;
+        const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(optimizedSvg);
+        window.open(dataUrl, '_blank');
+    };
+
     const handleDragEvents = (e: React.DragEvent<HTMLDivElement>, isEntering: boolean) => {
         e.preventDefault();
         e.stopPropagation();
@@ -137,6 +154,14 @@ const Optimizer: React.FC = () => {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    };
+
+    const handleCopyOriginal = () => {
+        if (!originalSvg) return;
+        navigator.clipboard.writeText(originalSvg).then(() => {
+            setCopyOriginalOk(true);
+            setTimeout(() => setCopyOriginalOk(false), 2000);
+        });
     };
 
     const originalSize = originalSvg.length;
@@ -201,15 +226,26 @@ const Optimizer: React.FC = () => {
                             <GeminiIcon className="w-5 h-5"/>
                             {isExplaining ? 'Explaining...' : 'Explain Code'}
                         </button>
+                        <button onClick={handleCopyOriginal} className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                            {copyOriginalOk ? 'Copied!' : 'Copy Original'}
+                        </button>
 
                         {optimizedSvg && !isOptimizing && (
                             <>
                                 <div className="flex-grow bg-slate-700/80 rounded-lg p-2 text-center text-sm text-green-400 font-medium">
                                         Reduction: {reduction.toFixed(2)}%
                                 </div>
-                                <button onClick={handleDownload} className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
-                                    Download
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={handleOpenOptimized} className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                                        Open in new tab
+                                    </button>
+                                    <button onClick={handleCopyOptimized} className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                                        {copyOk ? 'Copied!' : 'Copy Optimized'}
+                                    </button>
+                                    <button onClick={handleDownload} className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                                        Download
+                                    </button>
+                                </div>
                             </>
                         )}
                     </div>

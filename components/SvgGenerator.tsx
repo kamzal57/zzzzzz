@@ -19,6 +19,12 @@ const SvgGenerator: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [loadingMessage, setLoadingMessage] = useState<string>(loadingMessages[0]);
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
+    
+    const openInNewTab = () => {
+        if (!generatedSvg) return;
+        const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(generatedSvg);
+        window.open(dataUrl, '_blank');
+    };
 
     useEffect(() => {
         // Fix: Use ReturnType<typeof setInterval> for browser compatibility instead of NodeJS.Timeout
@@ -118,9 +124,12 @@ const SvgGenerator: React.FC = () => {
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="font-semibold text-slate-200">SVG Code</h3>
-                            <button onClick={handleCopy} className="text-xs bg-slate-600 hover:bg-slate-500 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">
-                                {copySuccess ? 'Copied!' : 'Copy'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={openInNewTab} disabled={!generatedSvg} className="text-xs bg-slate-600 hover:bg-slate-500 disabled:bg-slate-600/50 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">Open in new tab</button>
+                                <button onClick={handleCopy} className="text-xs bg-slate-600 hover:bg-slate-500 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">
+                                    {copySuccess ? 'Copied!' : 'Copy'}
+                                </button>
+                            </div>
                         </div>
                         <pre className="bg-gray-900 text-sm text-cyan-300 p-3 rounded-md h-64 overflow-auto">
                             <code>{isLoading ? '...' : generatedSvg.trim()}</code>
