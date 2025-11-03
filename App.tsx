@@ -8,7 +8,16 @@ import SvgGenerator from './components/SvgGenerator';
 const App: React.FC = () => {
   const [openModuleId, setOpenModuleId] = useState<number | null>(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [completedModules, setCompletedModules] = useState<Set<number>>(new Set());
+  const [completedModules, setCompletedModules] = useState<Set<number>>(() => {
+    // Load from localStorage on initial render
+    const saved = localStorage.getItem('completedModules');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  // Save to localStorage whenever completedModules changes
+  useEffect(() => {
+    localStorage.setItem('completedModules', JSON.stringify(Array.from(completedModules)));
+  }, [completedModules]);
 
   useEffect(() => {
     const handleScroll = () => {
