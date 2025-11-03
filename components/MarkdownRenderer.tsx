@@ -31,7 +31,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     const elements = [];
     let inCodeBlock = false;
     let codeBlockContent = '';
-    let listItems: JSX.Element[] = [];
+    let listItems = [];
 
     const flushList = () => {
         if (listItems.length > 0) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { generateSvg, isApiKeyConfigured } from '../lib/gemini';
 import GeminiIcon from './GeminiIcon';
 import DOMPurify from 'isomorphic-dompurify';
@@ -32,6 +32,9 @@ const SvgGenerator: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [loadingMessage, setLoadingMessage] = useState<string>(loadingMessages[0]);
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
+
+    // Memoize trimmed prompt check to avoid repeated trim operations on every render
+    const isPromptEmpty = useMemo(() => !prompt.trim(), [prompt]);
 
     useEffect(() => {
         // Fix: Use ReturnType<typeof setInterval> for browser compatibility instead of NodeJS.Timeout
@@ -137,7 +140,7 @@ const SvgGenerator: React.FC = () => {
                 />
                 <button
                     onClick={handleGenerate}
-                    disabled={isLoading || !prompt.trim()}
+                    disabled={isLoading || isPromptEmpty}
                     className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
                     aria-label="Generate SVG from description"
                 >

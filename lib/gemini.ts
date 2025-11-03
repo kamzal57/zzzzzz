@@ -33,7 +33,7 @@ export function isApiKeyConfigured(): boolean {
 /**
  * Lazy-initializes the GoogleGenAI instance.
  * @returns An initialized GoogleGenAI instance.
- * @throws Error if API key is not configured
+ * Note: If API key is not configured, initializes with empty key but API calls will fail
  */
 function getAi(): GoogleGenAI {
   if (!ai) {

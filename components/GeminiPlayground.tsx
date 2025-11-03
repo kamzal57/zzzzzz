@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { askWithSearch, isApiKeyConfigured } from '../lib/gemini';
 import { GenerateContentResponse } from '@google/genai';
 import GeminiIcon from './GeminiIcon';
@@ -27,6 +27,9 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Memoize question validation to avoid repeated trim operations
+  const isQuestionEmpty = useMemo(() => !question.trim(), [question]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +85,7 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
         />
         <button
           type="submit"
-          disabled={isLoading || !question.trim()}
+          disabled={isLoading || isQuestionEmpty}
           className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
           aria-label="Submit question"
         >
