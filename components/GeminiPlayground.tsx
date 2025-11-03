@@ -67,6 +67,9 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
     navigator.clipboard.writeText(text).then(() => {
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
+    }).catch((err) => {
+      console.error('Failed to copy text: ', err);
+      setError('Failed to copy to clipboard');
     });
   };
 
@@ -118,7 +121,7 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
             const webSources = groundingChunks?.filter(chunk => chunk.web).map(chunk => chunk.web);
             
             return (
-              <div key={index} className="border-b border-slate-700 pb-4 last:border-b-0">
+              <div key={`${entry.timestamp.getTime()}-${index}`} className="border-b border-slate-700 pb-4 last:border-b-0">
                 <div className="mb-2">
                   <p className="text-sm text-slate-400 mb-1">
                     {entry.timestamp.toLocaleTimeString()}
