@@ -12,6 +12,18 @@ const UploadIcon: React.FC = () => (
     </svg>
 );
 
+/**
+ * Optimizer Component
+ * 
+ * SVG optimization and inspection tool that combines:
+ * - SVGO-based SVG optimization for file size reduction
+ * - AI-powered code explanation using Google Gemini
+ * - Drag-and-drop file upload
+ * - Side-by-side comparison of original and optimized SVG
+ * - File validation and size limits (max 5MB)
+ * 
+ * @component
+ */
 const Optimizer: React.FC = () => {
     const [originalSvg, setOriginalSvg] = useState<string>('');
     const [optimizedSvg, setOptimizedSvg] = useState<string>('');
@@ -38,16 +50,31 @@ const Optimizer: React.FC = () => {
     const processFile = (file: File | null) => {
         if (!file) return;
 
-        if (file.type !== 'image/svg+xml') {
-            setError('Invalid file. Please select an SVG file.');
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            setError('File is too large. Maximum size is 5MB.');
+            return;
+        }
+
+        if (file.type !== 'image/svg+xml' && !file.name.endsWith('.svg')) {
+            setError('Invalid file type. Please select an SVG file (.svg).');
             return;
         }
 
         resetState();
         setFileName(file.name);
         const reader = new FileReader();
+        reader.onerror = () => {
+            setError('Failed to read file. Please try again.');
+        };
         reader.onload = (e) => {
             const text = e.target?.result as string;
+            // Basic SVG validation
+            if (!text || !text.trim().includes('<svg')) {
+                setError('Invalid SVG file. The file does not contain valid SVG content.');
+                return;
+            }
             setOriginalSvg(text);
         };
         reader.readAsText(file);
@@ -86,14 +113,21 @@ const Optimizer: React.FC = () => {
 
     const handleExplain = async () => {
         if (!originalSvg) return;
+        if (!isApiKeyConfigured()) {
+            setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
+            return;
+        }
         setIsExplaining(true);
         setExplanation('');
         setError('');
         try {
             const result = await explainSvg(originalSvg);
+            if (!result || result.trim().length === 0) {
+                throw new Error('No explanation received from AI.');
+            }
             setExplanation(result);
         } catch (e: any) {
-            setError(`AI Error: ${e.message || 'Could not explain SVG.'}`);
+            setError(`AI Error: ${e.message || 'Could not explain SVG. Please try again.'}`);
             setExplanation('');
         } finally {
             setIsExplaining(false);
@@ -162,16 +196,33 @@ const Optimizer: React.FC = () => {
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Upload SVG file - Click or drag and drop"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            fileInputRef.current?.click();
+                        }
+                    }}
                 >
                     <UploadIcon />
                     <p className="mt-2 text-slate-300">
                         <span className="font-semibold text-cyan-400">Click to upload</span> or drag and drop an SVG file.
                     </p>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/svg+xml" className="hidden" />
+                    <p className="text-xs text-slate-500 mt-1">Maximum file size: 5MB</p>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="image/svg+xml,.svg" 
+                        className="hidden" 
+                        aria-label="SVG file input"
+                    />
                 </div>
             )}
 
-            {error && <p className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4">{error}</p>}
+            {error && <div role="alert" aria-live="assertive" className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4">{error}</div>}
             
             {originalSvg && (
                 <div className="space-y-6">
@@ -194,20 +245,34 @@ const Optimizer: React.FC = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4">
-                        <button onClick={handleOptimize} disabled={isOptimizing || isExplaining} className="flex-shrink-0 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                        <button 
+                            onClick={handleOptimize} 
+                            disabled={isOptimizing || isExplaining} 
+                            className="flex-shrink-0 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200"
+                            aria-label="Optimize SVG file"
+                        >
                             {isOptimizing ? 'Optimizing...' : 'Optimize'}
                         </button>
-                        <button onClick={handleExplain} disabled={isExplaining || isOptimizing} className="flex items-center gap-2 flex-shrink-0 bg-slate-600 hover:bg-slate-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                        <button 
+                            onClick={handleExplain} 
+                            disabled={isExplaining || isOptimizing} 
+                            className="flex items-center gap-2 flex-shrink-0 bg-slate-600 hover:bg-slate-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200"
+                            aria-label="Explain SVG code with AI"
+                        >
                             <GeminiIcon className="w-5 h-5"/>
                             {isExplaining ? 'Explaining...' : 'Explain Code'}
                         </button>
 
                         {optimizedSvg && !isOptimizing && (
                             <>
-                                <div className="flex-grow bg-slate-700/80 rounded-lg p-2 text-center text-sm text-green-400 font-medium">
+                                <div className="flex-grow bg-slate-700/80 rounded-lg p-2 text-center text-sm text-green-400 font-medium" aria-live="polite">
                                         Reduction: {reduction.toFixed(2)}%
                                 </div>
-                                <button onClick={handleDownload} className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                                <button 
+                                    onClick={handleDownload} 
+                                    className="flex-shrink-0 bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+                                    aria-label="Download optimized SVG"
+                                >
                                     Download
                                 </button>
                             </>

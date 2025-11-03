@@ -91,8 +91,10 @@ ${lesson.example.code.trim()}
         <button 
             onClick={() => setIsAiHelperOpen(!isAiHelperOpen)}
             className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 bg-slate-800/50 hover:bg-slate-800 p-2 rounded-lg transition-colors"
+            aria-expanded={isAiHelperOpen}
+            aria-label={`${isAiHelperOpen ? 'Close' : 'Open'} AI Assistant for ${lesson.title}`}
         >
-            <GeminiIcon className="w-5 h-5" />
+            <GeminiIcon className="w-5 h-5" aria-hidden="true" />
             <span>{isAiHelperOpen ? 'Close AI Assistant' : 'Ask Gemini about this lesson'}</span>
         </button>
         {isAiHelperOpen && (

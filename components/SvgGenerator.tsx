@@ -1,17 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { generateSvg, isApiKeyConfigured } from '../lib/gemini';
 import GeminiIcon from './GeminiIcon';
 import DOMPurify from 'isomorphic-dompurify';
 import ApiKeyNotice from './ApiKeyNotice';
 
 const loadingMessages = [
-    "Contacting the design muse...",
-    "Translating ideas into vectors...",
-    "Applying digital ink...",
-    "Perfecting the curves...",
-    "Finalizing the artwork...",
+    "Analyzing your description...",
+    "Generating SVG structure...",
+    "Optimizing vector paths...",
+    "Applying styling and colors...",
+    "Finalizing your SVG...",
 ];
 
+/**
+ * SvgGenerator Component
+ * 
+ * An AI-powered SVG generator that uses Google Gemini Pro to create SVG graphics
+ * from text descriptions. Features include:
+ * - Real-time SVG generation from natural language prompts
+ * - Visual preview of generated SVG
+ * - Code display with copy-to-clipboard functionality
+ * - Input validation and error handling
+ * - Sanitization of generated SVG for security
+ * 
+ * @component
+ */
 const SvgGenerator: React.FC = () => {
     const [prompt, setPrompt] = useState<string>('');
     const [generatedSvg, setGeneratedSvg] = useState<string>('');
@@ -19,6 +32,9 @@ const SvgGenerator: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [loadingMessage, setLoadingMessage] = useState<string>(loadingMessages[0]);
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
+
+    // Memoize trimmed prompt check to avoid repeated trim operations on every render
+    const isPromptEmpty = useMemo(() => !prompt.trim(), [prompt]);
 
     useEffect(() => {
         // Fix: Use ReturnType<typeof setInterval> for browser compatibility instead of NodeJS.Timeout
@@ -36,8 +52,17 @@ const SvgGenerator: React.FC = () => {
     }, [isLoading]);
 
     const handleGenerate = async () => {
-        if (!prompt.trim()) {
+        const trimmedPrompt = prompt.trim();
+        if (!trimmedPrompt) {
             setError('Please enter a description.');
+            return;
+        }
+        if (trimmedPrompt.length > 1000) {
+            setError('Description is too long. Please keep it under 1000 characters.');
+            return;
+        }
+        if (!isApiKeyConfigured()) {
+            setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
             return;
         }
         setIsLoading(true);
@@ -45,27 +70,48 @@ const SvgGenerator: React.FC = () => {
         setGeneratedSvg('');
         setLoadingMessage(loadingMessages[0]);
         try {
-            const svgResult = await generateSvg(prompt);
+            const svgResult = await generateSvg(trimmedPrompt);
              // Basic validation to check if the result is likely SVG
             if (svgResult.trim().startsWith('<svg')) {
                 const safe = DOMPurify.sanitize(svgResult, { USE_PROFILES: { svg: true } });
+                if (safe.length === 0) {
+                    throw new Error("Generated SVG was empty or invalid after sanitization.");
+                }
                 setGeneratedSvg(safe);
             } else {
                 throw new Error("The AI did not return valid SVG. Please try again with a more specific prompt.");
             }
         } catch (e: any) {
-            setError(`Generation failed: ${e.message}`);
+            setError(`Generation failed: ${e.message || 'An unexpected error occurred. Please try again.'}`);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleCopy = () => {
+    const handleCopy = async () => {
         if (!generatedSvg) return;
-        navigator.clipboard.writeText(generatedSvg).then(() => {
+        try {
+            await navigator.clipboard.writeText(generatedSvg);
             setCopySuccess(true);
             setTimeout(() => setCopySuccess(false), 2000);
-        });
+        } catch (err) {
+            console.error('Failed to copy to clipboard:', err);
+            // Fallback: create a temporary textarea
+            const textarea = document.createElement('textarea');
+            textarea.value = generatedSvg;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                setCopySuccess(true);
+                setTimeout(() => setCopySuccess(false), 2000);
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed:', fallbackErr);
+            }
+            document.body.removeChild(textarea);
+        }
     };
 
     return (
@@ -73,7 +119,7 @@ const SvgGenerator: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 flex items-center gap-2">
                 <GeminiIcon /> AI SVG Generator
             </h2>
-            <p className="text-slate-400 mb-4 text-sm">Describe an image, icon, or logo, and let Gemini Pro bring it to life as an SVG.</p>
+            <p id="svg-generator-description" className="text-slate-400 mb-4 text-sm">Describe an image, icon, or logo, and let Gemini Pro bring it to life as an SVG.</p>
 
             {!isApiKeyConfigured() && (
                 <ApiKeyNotice className="mb-4" />
@@ -88,17 +134,21 @@ const SvgGenerator: React.FC = () => {
                     className="w-full bg-slate-700/50 text-slate-200 placeholder-slate-500 rounded-lg p-3 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
                     disabled={isLoading}
                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                    aria-label="SVG description input"
+                    aria-describedby="svg-generator-description"
+                    maxLength={1000}
                 />
                 <button
                     onClick={handleGenerate}
-                    disabled={isLoading}
+                    disabled={isLoading || isPromptEmpty}
                     className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    aria-label="Generate SVG from description"
                 >
                     {isLoading ? 'Generating...' : 'Generate'}
                 </button>
             </div>
             
-            {error && <p className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4">{error}</p>}
+            {error && <div role="alert" aria-live="assertive" className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4">{error}</div>}
             
             {(isLoading || generatedSvg) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
