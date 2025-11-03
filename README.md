@@ -18,7 +18,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1LeblVpf2YyFam0ZHAxYeSw
    ```
 
 2. **Configurer la clé API Gemini:**
-   - Créez un fichier `.env.local` à la racine du projet
+   - Créez un fichier `.env.local` à la racine du projet (ou exécutez `npm run setup`)
    - Obtenez votre clé API sur: https://aistudio.google.com/app/apikey
    - Ajoutez votre clé:
      ```
