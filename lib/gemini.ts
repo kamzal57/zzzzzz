@@ -3,27 +3,44 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 let ai: GoogleGenAI | undefined;
 
 /**
+ * Returns the configured API key from environment (Vite) or process define fallback.
+ */
+export function getApiKey(): string | undefined {
+  // Preferred: Vite exposes variables starting with VITE_
+  // This will be statically replaced at build time for client code
+  const viteKey = (import.meta as any)?.env?.VITE_GEMINI_API_KEY as string | undefined;
+  if (viteKey && typeof viteKey === 'string' && viteKey.trim().length > 0) return viteKey;
+
+  // Fallback for previous define mapping if present
+  // Note: In the browser, `process` is undefined; we only read the literal if Vite replaced it
+  try {
+    // @ts-ignore - this may be replaced by Vite define
+    const definedApiKey = (process as any)?.env?.API_KEY as string | undefined;
+    if (definedApiKey && definedApiKey.trim().length > 0) return definedApiKey;
+    // @ts-ignore - also try GEMINI_API_KEY if defined
+    const definedGeminiKey = (process as any)?.env?.GEMINI_API_KEY as string | undefined;
+    if (definedGeminiKey && definedGeminiKey.trim().length > 0) return definedGeminiKey;
+  } catch {
+    // ignore
+  }
+  return undefined;
+}
+
+export function isApiKeyConfigured(): boolean {
+  return !!getApiKey();
+}
+
+/**
  * Lazy-initializes the GoogleGenAI instance.
  * @returns An initialized GoogleGenAI instance.
  */
 function getAi(): GoogleGenAI {
   if (!ai) {
-    let apiKey: string = '';
-    // Use globalThis to safely check for the 'process' object across environments.
-    // The guidelines state process.env.API_KEY is pre-configured and accessible.
-    // This check is merely to prevent a ReferenceError if 'process' itself is not defined
-    // in the specific execution context where the module is parsed.
-    if (typeof globalThis !== 'undefined' && (globalThis as any).process && (globalThis as any).process.env && (globalThis as any).process.env.API_KEY) {
-      apiKey = (globalThis as any).process.env.API_KEY as string;
-    } else {
-      // If globalThis.process.env.API_KEY is not found,
-      // it means the environment has failed to provide it as per guidelines.
-      // Log a warning, but proceed with an empty string as required by the constructor type.
-      // Actual API calls will fail due to missing key, but the app will load.
-      console.warn("API_KEY (process.env.API_KEY) not found. Gemini API calls will likely fail. Ensure the environment variable is correctly set.");
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      console.warn("Gemini API key missing. Set VITE_GEMINI_API_KEY in your .env.local.");
     }
-    
-    ai = new GoogleGenAI({ apiKey: apiKey });
+    ai = new GoogleGenAI({ apiKey: apiKey ?? '' });
   }
   return ai;
 }

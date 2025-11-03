@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface MarkdownRendererProps {
   content: string;
@@ -46,7 +47,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         if (line.startsWith('* ') || line.startsWith('- ')) {
             // Process bold and italics within list items
             const formattedItem = line.substring(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-            listItems.push(<span dangerouslySetInnerHTML={{__html: formattedItem}} />);
+            const safeItem = DOMPurify.sanitize(formattedItem);
+            listItems.push(<span dangerouslySetInnerHTML={{__html: safeItem}} />);
             return;
         }
 
@@ -61,7 +63,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         } else {
             // Process bold and italics in paragraphs
             const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-            elements.push(<p key={index} className="text-slate-300 my-2" dangerouslySetInnerHTML={{__html: formattedLine}}/>);
+            const safeLine = DOMPurify.sanitize(formattedLine);
+            elements.push(<p key={index} className="text-slate-300 my-2" dangerouslySetInnerHTML={{__html: safeLine}}/>);
         }
     });
 

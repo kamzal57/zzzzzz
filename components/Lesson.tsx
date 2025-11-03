@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { type Lesson as LessonType } from '../types';
 import GeminiPlayground from './GeminiPlayground';
 import GeminiIcon from './GeminiIcon';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface LessonProps {
   lesson: LessonType;
@@ -69,7 +70,7 @@ ${lesson.example.code.trim()}
           <div>
             <h5 className="text-sm font-semibold text-slate-300 mb-2 flex items-center"><EyeIcon/>Visual Preview</h5>
             <div className="bg-grid rounded-md border border-slate-700 h-40 p-2 overflow-hidden flex items-center justify-center">
-              <div className="w-full h-full flex items-center justify-center" dangerouslySetInnerHTML={{ __html: lesson.example.visual }} />
+              <div className="w-full h-full flex items-center justify-center" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lesson.example.visual, { USE_PROFILES: { svg: true } }) }} />
             </div>
           </div>
 

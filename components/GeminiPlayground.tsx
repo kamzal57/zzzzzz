@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { askWithSearch } from '../lib/gemini';
+import { askWithSearch, isApiKeyConfigured } from '../lib/gemini';
 import { GenerateContentResponse } from '@google/genai';
 import GeminiIcon from './GeminiIcon';
 import MarkdownRenderer from './MarkdownRenderer';
+import ApiKeyNotice from './ApiKeyNotice';
 
 interface GeminiPlaygroundProps {
   context: string;
@@ -19,6 +20,11 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() || isLoading) return;
+
+    if (!isApiKeyConfigured()) {
+      setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
@@ -40,6 +46,7 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
 
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+      {!isApiKeyConfigured() && <ApiKeyNotice className="mb-3" />}
       <form onSubmit={handleSubmit} className="flex gap-2 items-center">
         <GeminiIcon className="w-6 h-6 flex-shrink-0" />
         <input

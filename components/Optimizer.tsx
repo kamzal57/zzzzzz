@@ -2,6 +2,9 @@ import React, { useState, useRef } from 'react';
 import { explainSvg } from '../lib/gemini';
 import GeminiIcon from './GeminiIcon';
 import MarkdownRenderer from './MarkdownRenderer';
+import DOMPurify from 'isomorphic-dompurify';
+import { isApiKeyConfigured } from '../lib/gemini';
+import ApiKeyNotice from './ApiKeyNotice';
 
 const UploadIcon: React.FC = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -140,10 +143,16 @@ const Optimizer: React.FC = () => {
     const optimizedSize = optimizedSvg.length;
     const reduction = originalSize > 0 ? ((originalSize - optimizedSize) / originalSize) * 100 : 0;
 
+    const sanitizedOriginal = DOMPurify.sanitize(originalSvg, { USE_PROFILES: { svg: true } });
+    const sanitizedOptimized = DOMPurify.sanitize(optimizedSvg, { USE_PROFILES: { svg: true } });
+
     return (
         <section className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 sm:p-6 mb-10 shadow-lg">
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">SVG Optimizer & Inspector</h2>
             <p className="text-slate-400 mb-6 text-sm">Powered by <a href="https://jakearchibald.github.io/svgomg/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">SVGOMG</a> and Gemini. Clean, optimize, and understand your SVGs.</p>
+            {!isApiKeyConfigured() && (
+                <ApiKeyNotice className="mb-4" />
+            )}
             
             {!originalSvg && (
                 <div 
@@ -174,12 +183,12 @@ const Optimizer: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <h3 className="font-semibold text-slate-200 mb-2">Original <span className="text-xs font-normal text-slate-400">({formatBytes(originalSize)})</span></h3>
-                            <div className="bg-grid rounded-md border border-slate-700 h-48 p-2 overflow-auto" dangerouslySetInnerHTML={{ __html: originalSvg }} />
+                                     <div className="bg-grid rounded-md border border-slate-700 h-48 p-2 overflow-auto" dangerouslySetInnerHTML={{ __html: sanitizedOriginal }} />
                         </div>
                          <div>
                             <h3 className="font-semibold text-slate-200 mb-2">Optimized <span className="text-xs font-normal text-slate-400">({optimizedSvg ? formatBytes(optimizedSize) : '...'})</span></h3>
                             <div className="bg-grid rounded-md border border-slate-700 h-48 p-2 overflow-auto flex items-center justify-center">
-                               {isOptimizing ? <p className="text-slate-400 animate-pulse">Optimizing...</p> : <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: optimizedSvg }} />}
+                                         {isOptimizing ? <p className="text-slate-400 animate-pulse">Optimizing...</p> : <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: sanitizedOptimized }} />}
                             </div>
                         </div>
                     </div>

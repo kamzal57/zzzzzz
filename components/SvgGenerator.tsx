@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { generateSvg } from '../lib/gemini';
+import { generateSvg, isApiKeyConfigured } from '../lib/gemini';
 import GeminiIcon from './GeminiIcon';
+import DOMPurify from 'isomorphic-dompurify';
+import ApiKeyNotice from './ApiKeyNotice';
 
 const loadingMessages = [
     "Contacting the design muse...",
@@ -46,7 +48,8 @@ const SvgGenerator: React.FC = () => {
             const svgResult = await generateSvg(prompt);
              // Basic validation to check if the result is likely SVG
             if (svgResult.trim().startsWith('<svg')) {
-                setGeneratedSvg(svgResult);
+                const safe = DOMPurify.sanitize(svgResult, { USE_PROFILES: { svg: true } });
+                setGeneratedSvg(safe);
             } else {
                 throw new Error("The AI did not return valid SVG. Please try again with a more specific prompt.");
             }
@@ -71,6 +74,10 @@ const SvgGenerator: React.FC = () => {
                 <GeminiIcon /> AI SVG Generator
             </h2>
             <p className="text-slate-400 mb-4 text-sm">Describe an image, icon, or logo, and let Gemini Pro bring it to life as an SVG.</p>
+
+            {!isApiKeyConfigured() && (
+                <ApiKeyNotice className="mb-4" />
+            )}
 
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <input
