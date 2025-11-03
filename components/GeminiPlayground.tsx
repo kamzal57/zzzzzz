@@ -25,11 +25,6 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
       return;
     }
 
-    if (!isApiKeyConfigured()) {
-      setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
     setResponse(null);
@@ -38,7 +33,8 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
       const result = await askWithSearch(context, question);
       setResponse(result);
     } catch (err: any) {
-      setError(`An error occurred: ${err.message}`);
+      console.error('Gemini Ask Error:', err);
+      setError(`An error occurred: ${err.message || 'Unable to get response. Please try again.'}`);
     } finally {
       setIsLoading(false);
       setQuestion('');

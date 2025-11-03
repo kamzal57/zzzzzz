@@ -9,20 +9,32 @@ export function getApiKey(): string | undefined {
   // Preferred: Vite exposes variables starting with VITE_
   // This will be statically replaced at build time for client code
   const viteKey = (import.meta as any)?.env?.VITE_GEMINI_API_KEY as string | undefined;
-  if (viteKey && typeof viteKey === 'string' && viteKey.trim().length > 0) return viteKey;
+  if (viteKey && typeof viteKey === 'string' && viteKey.trim().length > 0) {
+    console.log('✅ Gemini API key found via VITE_GEMINI_API_KEY');
+    return viteKey;
+  }
 
   // Fallback for previous define mapping if present
   // Note: In the browser, `process` is undefined; we only read the literal if Vite replaced it
   try {
     // @ts-ignore - this may be replaced by Vite define
     const definedApiKey = (process as any)?.env?.API_KEY as string | undefined;
-    if (definedApiKey && definedApiKey.trim().length > 0) return definedApiKey;
+    if (definedApiKey && definedApiKey.trim().length > 0) {
+      console.log('✅ Gemini API key found via process.env.API_KEY');
+      return definedApiKey;
+    }
     // @ts-ignore - also try GEMINI_API_KEY if defined
     const definedGeminiKey = (process as any)?.env?.GEMINI_API_KEY as string | undefined;
-    if (definedGeminiKey && definedGeminiKey.trim().length > 0) return definedGeminiKey;
+    if (definedGeminiKey && definedGeminiKey.trim().length > 0) {
+      console.log('✅ Gemini API key found via process.env.GEMINI_API_KEY');
+      return definedGeminiKey;
+    }
   } catch {
     // ignore
   }
+  
+  console.warn('⚠️ No Gemini API key configured. AI features will be disabled.');
+  console.info('💡 Set VITE_GEMINI_API_KEY in .env.local file to enable AI features.');
   return undefined;
 }
 
@@ -38,7 +50,7 @@ function getAi(): GoogleGenAI {
   if (!ai) {
     const apiKey = getApiKey();
     if (!apiKey) {
-      console.warn("Gemini API key missing. Set VITE_GEMINI_API_KEY in your .env.local.");
+      console.error('❌ Gemini API key missing. AI features will not work until configured.');
     }
     ai = new GoogleGenAI({ apiKey: apiKey ?? '' });
   }
@@ -53,6 +65,10 @@ function getAi(): GoogleGenAI {
  * @returns The full GenerateContentResponse object.
  */
 export async function askWithSearch(context: string, question: string): Promise<GenerateContentResponse> {
+  if (!isApiKeyConfigured()) {
+    throw new Error('API key not configured. Please set VITE_GEMINI_API_KEY in your .env.local file.');
+  }
+  
   const model = 'gemini-2.5-flash';
   const prompt = `
     You are an expert on SVG and web animation.
@@ -68,14 +84,19 @@ export async function askWithSearch(context: string, question: string): Promise<
     Question: ${question}
   `;
 
-  const response = await getAi().models.generateContent({
-    model,
-    contents: prompt,
-    config: {
-      tools: [{googleSearch: {}}],
-    },
-  });
-  return response;
+  try {
+    const response = await getAi().models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        tools: [{googleSearch: {}}],
+      },
+    });
+    return response;
+  } catch (error: any) {
+    console.error('Error calling Gemini API:', error);
+    throw new Error(`Failed to get AI response: ${error.message || 'Unknown error'}`);
+  }
 }
 
 /**
@@ -84,6 +105,10 @@ export async function askWithSearch(context: string, question: string): Promise<
  * @returns The explanation text in Markdown.
  */
 export async function explainSvg(svgCode: string): Promise<string> {
+  if (!isApiKeyConfigured()) {
+    throw new Error('API key not configured. Please set VITE_GEMINI_API_KEY in your .env.local file.');
+  }
+  
   const model = 'gemini-2.5-flash';
   const prompt = `
     You are an expert SVG developer. Explain the following SVG code to a beginner.
@@ -96,8 +121,14 @@ export async function explainSvg(svgCode: string): Promise<string> {
     ${svgCode}
     ---
   `;
-  const response = await getAi().models.generateContent({ model, contents: prompt });
-  return response.text;
+  
+  try {
+    const response = await getAi().models.generateContent({ model, contents: prompt });
+    return response.text;
+  } catch (error: any) {
+    console.error('Error explaining SVG:', error);
+    throw new Error(`Failed to explain SVG: ${error.message || 'Unknown error'}`);
+  }
 }
 
 /**
@@ -106,6 +137,10 @@ export async function explainSvg(svgCode: string): Promise<string> {
  * @returns A string containing the raw SVG code.
  */
 export async function generateSvg(prompt: string): Promise<string> {
+  if (!isApiKeyConfigured()) {
+    throw new Error('API key not configured. Please set VITE_GEMINI_API_KEY in your .env.local file.');
+  }
+  
   const model = 'gemini-2.5-pro';
   const fullPrompt = `
     You are an expert SVG designer. Create a complete, valid SVG code based on the following description.
@@ -120,12 +155,17 @@ export async function generateSvg(prompt: string): Promise<string> {
     Description: "${prompt}"
   `;
 
-  const response = await getAi().models.generateContent({
-    model,
-    contents: fullPrompt,
-    config: {
-      thinkingConfig: { thinkingBudget: 32768 }
-    }
-  });
-  return response.text;
+  try {
+    const response = await getAi().models.generateContent({
+      model,
+      contents: fullPrompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 32768 }
+      }
+    });
+    return response.text;
+  } catch (error: any) {
+    console.error('Error generating SVG:', error);
+    throw new Error(`Failed to generate SVG: ${error.message || 'Unknown error'}`);
+  }
 }

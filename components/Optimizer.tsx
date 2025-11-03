@@ -97,7 +97,8 @@ const Optimizer: React.FC = () => {
             const result = await explainSvg(originalSvg);
             setExplanation(result);
         } catch (e: any) {
-            setError(`AI Error: ${e.message || 'Could not explain SVG.'}`);
+            console.error('SVG Explanation Error:', e);
+            setError(`AI Error: ${e.message || 'Could not explain SVG. Please try again.'}`);
             setExplanation('');
         } finally {
             setIsExplaining(false);

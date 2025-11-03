@@ -58,7 +58,8 @@ const SvgGenerator: React.FC = () => {
                 throw new Error("The AI did not return valid SVG. Please try again with a more specific prompt.");
             }
         } catch (e: any) {
-            setError(`Generation failed: ${e.message}`);
+            console.error('SVG Generation Error:', e);
+            setError(`Generation failed: ${e.message || 'An unexpected error occurred. Please try again.'}`);
         } finally {
             setIsLoading(false);
         }
