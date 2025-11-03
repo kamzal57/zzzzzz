@@ -40,6 +40,10 @@ const SvgGenerator: React.FC = () => {
             setError('Please enter a description.');
             return;
         }
+        if (!isApiKeyConfigured()) {
+            setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
+            return;
+        }
         setIsLoading(true);
         setError('');
         setGeneratedSvg('');
@@ -86,12 +90,12 @@ const SvgGenerator: React.FC = () => {
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="e.g., A smiling sun icon with sunglasses"
                     className="w-full bg-slate-700/50 text-slate-200 placeholder-slate-500 rounded-lg p-3 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
-                    disabled={isLoading}
+                    disabled={isLoading || !isApiKeyConfigured()}
                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
                 />
                 <button
                     onClick={handleGenerate}
-                    disabled={isLoading}
+                    disabled={isLoading || !isApiKeyConfigured()}
                     className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
                 >
                     {isLoading ? 'Generating...' : 'Generate'}

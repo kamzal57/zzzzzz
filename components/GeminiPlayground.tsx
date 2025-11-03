@@ -20,6 +20,10 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() || isLoading) return;
+    if (!isApiKeyConfigured()) {
+      setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
+      return;
+    }
 
     if (!isApiKeyConfigured()) {
       setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
@@ -56,11 +60,11 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
           onChange={(e) => setQuestion(e.target.value)}
           placeholder={placeholder}
           className="w-full bg-slate-700/50 text-slate-200 placeholder-slate-500 rounded-md p-2 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
-          disabled={isLoading}
+          disabled={isLoading || !isApiKeyConfigured()}
         />
         <button
           type="submit"
-          disabled={isLoading || !question.trim()}
+          disabled={isLoading || !question.trim() || !isApiKeyConfigured()}
           className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
         >
           {isLoading ? (
