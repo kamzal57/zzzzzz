@@ -86,6 +86,10 @@ const Optimizer: React.FC = () => {
 
     const handleExplain = async () => {
         if (!originalSvg) return;
+        if (!isApiKeyConfigured()) {
+            setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
+            return;
+        }
         setIsExplaining(true);
         setExplanation('');
         setError('');
@@ -93,7 +97,8 @@ const Optimizer: React.FC = () => {
             const result = await explainSvg(originalSvg);
             setExplanation(result);
         } catch (e: any) {
-            setError(`AI Error: ${e.message || 'Could not explain SVG.'}`);
+            console.error('SVG Explanation Error:', e);
+            setError(`AI Error: ${e.message || 'Could not explain SVG. Please try again.'}`);
             setExplanation('');
         } finally {
             setIsExplaining(false);
@@ -197,7 +202,7 @@ const Optimizer: React.FC = () => {
                         <button onClick={handleOptimize} disabled={isOptimizing || isExplaining} className="flex-shrink-0 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
                             {isOptimizing ? 'Optimizing...' : 'Optimize'}
                         </button>
-                        <button onClick={handleExplain} disabled={isExplaining || isOptimizing} className="flex items-center gap-2 flex-shrink-0 bg-slate-600 hover:bg-slate-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
+                        <button onClick={handleExplain} disabled={isExplaining || isOptimizing || !isApiKeyConfigured()} className="flex items-center gap-2 flex-shrink-0 bg-slate-600 hover:bg-slate-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors duration-200">
                             <GeminiIcon className="w-5 h-5"/>
                             {isExplaining ? 'Explaining...' : 'Explain Code'}
                         </button>
