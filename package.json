@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --noEmit"
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint",
+    "clean": "rm -rf dist node_modules/.vite"
   },
   "dependencies": {
     "@google/genai": "^1.28.0",
