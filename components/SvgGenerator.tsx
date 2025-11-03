@@ -5,11 +5,11 @@ import DOMPurify from 'isomorphic-dompurify';
 import ApiKeyNotice from './ApiKeyNotice';
 
 const loadingMessages = [
-    "Contacting the design muse...",
-    "Translating ideas into vectors...",
-    "Applying digital ink...",
-    "Perfecting the curves...",
-    "Finalizing the artwork...",
+    "Analyzing your description...",
+    "Generating SVG structure...",
+    "Optimizing vector paths...",
+    "Applying styling and colors...",
+    "Finalizing your SVG...",
 ];
 
 /**
