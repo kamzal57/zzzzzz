@@ -12,6 +12,19 @@ const loadingMessages = [
     "Finalizing the artwork...",
 ];
 
+/**
+ * SvgGenerator Component
+ * 
+ * An AI-powered SVG generator that uses Google Gemini Pro to create SVG graphics
+ * from text descriptions. Features include:
+ * - Real-time SVG generation from natural language prompts
+ * - Visual preview of generated SVG
+ * - Code display with copy-to-clipboard functionality
+ * - Input validation and error handling
+ * - Sanitization of generated SVG for security
+ * 
+ * @component
+ */
 const SvgGenerator: React.FC = () => {
     const [prompt, setPrompt] = useState<string>('');
     const [generatedSvg, setGeneratedSvg] = useState<string>('');

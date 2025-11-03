@@ -5,6 +5,20 @@ interface MarkdownRendererProps {
   content: string;
 }
 
+/**
+ * MarkdownRenderer Component
+ * 
+ * Renders markdown-formatted text with support for:
+ * - Headers (h1, h2, h3)
+ * - Lists (bullet points)
+ * - Code blocks
+ * - Bold and italic text
+ * - Sanitization for security using DOMPurify
+ * 
+ * @param {string} content - Markdown content to render
+ * 
+ * @component
+ */
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   const renderContent = () => {
     // Sanitize the entire content first as a safety measure

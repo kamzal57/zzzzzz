@@ -4,6 +4,14 @@ interface ApiKeyNoticeProps {
   className?: string;
 }
 
+/**
+ * ApiKeyNotice Component
+ * 
+ * Displays a warning notice when the Gemini API key is not configured.
+ * Used across the application to inform users about missing API configuration.
+ * 
+ * @param {string} [className] - Optional additional CSS classes
+ */
 const ApiKeyNotice: React.FC<ApiKeyNoticeProps> = ({ className }) => {
   return (
     <div 

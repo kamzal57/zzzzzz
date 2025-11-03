@@ -12,6 +12,18 @@ const UploadIcon: React.FC = () => (
     </svg>
 );
 
+/**
+ * Optimizer Component
+ * 
+ * SVG optimization and inspection tool that combines:
+ * - SVGO-based SVG optimization for file size reduction
+ * - AI-powered code explanation using Google Gemini
+ * - Drag-and-drop file upload
+ * - Side-by-side comparison of original and optimized SVG
+ * - File validation and size limits (max 5MB)
+ * 
+ * @component
+ */
 const Optimizer: React.FC = () => {
     const [originalSvg, setOriginalSvg] = useState<string>('');
     const [optimizedSvg, setOptimizedSvg] = useState<string>('');

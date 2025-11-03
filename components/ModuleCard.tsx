@@ -29,6 +29,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isOpen, onToggle }) => 
         onClick={onToggle}
         className="w-full flex justify-between items-center p-4 sm:p-5 text-left focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-inset"
         aria-expanded={isOpen}
+        aria-label={`${isOpen ? 'Collapse' : 'Expand'} module ${module.id}: ${module.title}`}
       >
         <div className="flex items-center gap-4">
           <span className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-cyan-900/50 text-cyan-400 font-bold text-lg">

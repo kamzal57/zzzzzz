@@ -10,6 +10,17 @@ interface GeminiPlaygroundProps {
   placeholder: string;
 }
 
+/**
+ * GeminiPlayground Component
+ * 
+ * Interactive AI assistant that allows users to ask questions about SVG lessons
+ * and receive answers powered by Google Gemini with web search capabilities.
+ * 
+ * @param {string} context - The lesson context to provide to the AI
+ * @param {string} placeholder - Placeholder text for the input field
+ * 
+ * @component
+ */
 const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholder }) => {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState<GenerateContentResponse | null>(null);
