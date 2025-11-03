@@ -38,8 +38,15 @@ const Optimizer: React.FC = () => {
     const processFile = (file: File | null) => {
         if (!file) return;
 
-        if (file.type !== 'image/svg+xml') {
-            setError('Invalid file. Please select an SVG file.');
+        if (file.type !== 'image/svg+xml' && !file.name.toLowerCase().endsWith('.svg')) {
+            setError('Fichier invalide. Veuillez sélectionner un fichier SVG.');
+            return;
+        }
+        
+        // Check file size (limit to 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            setError('Le fichier est trop volumineux. Taille maximale : 5 Mo.');
             return;
         }
 
@@ -48,7 +55,14 @@ const Optimizer: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const text = e.target?.result as string;
+            if (!text || !text.trim().includes('<svg')) {
+                setError('Le fichier ne contient pas de SVG valide.');
+                return;
+            }
             setOriginalSvg(text);
+        };
+        reader.onerror = () => {
+            setError('Erreur lors de la lecture du fichier.');
         };
         reader.readAsText(file);
     };
@@ -77,7 +91,7 @@ const Optimizer: React.FC = () => {
             }
             setOptimizedSvg(result.data);
         } catch (e: any) {
-            setError(`Optimization Error: ${e.message || 'The SVG may be invalid.'}`);
+            setError(`Erreur d'optimisation : ${e.message || 'Le SVG peut être invalide.'}`);
             setOptimizedSvg('');
         } finally {
             setIsOptimizing(false);
@@ -86,6 +100,12 @@ const Optimizer: React.FC = () => {
 
     const handleExplain = async () => {
         if (!originalSvg) return;
+        
+        if (!isApiKeyConfigured()) {
+            setError('Clé API Gemini non configurée. Veuillez définir VITE_GEMINI_API_KEY dans votre fichier .env.local.');
+            return;
+        }
+        
         setIsExplaining(true);
         setExplanation('');
         setError('');
@@ -93,7 +113,7 @@ const Optimizer: React.FC = () => {
             const result = await explainSvg(originalSvg);
             setExplanation(result);
         } catch (e: any) {
-            setError(`AI Error: ${e.message || 'Could not explain SVG.'}`);
+            setError(`Erreur IA : ${e.message || 'Impossible d\'expliquer le SVG.'}`);
             setExplanation('');
         } finally {
             setIsExplaining(false);
@@ -167,11 +187,11 @@ const Optimizer: React.FC = () => {
                     <p className="mt-2 text-slate-300">
                         <span className="font-semibold text-cyan-400">Click to upload</span> or drag and drop an SVG file.
                     </p>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/svg+xml" className="hidden" />
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/svg+xml,.svg" className="hidden" aria-label="Sélectionner un fichier SVG" />
                 </div>
             )}
 
-            {error && <p className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4">{error}</p>}
+            {error && <p className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4" role="alert" aria-live="assertive">{error}</p>}
             
             {originalSvg && (
                 <div className="space-y-6">

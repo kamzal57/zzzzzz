@@ -22,7 +22,7 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
     if (!question.trim() || isLoading) return;
 
     if (!isApiKeyConfigured()) {
-      setError('Missing API key. Please set VITE_GEMINI_API_KEY in .env.local and reload.');
+      setError('Clé API manquante. Veuillez définir VITE_GEMINI_API_KEY dans .env.local et recharger.');
       return;
     }
 
@@ -34,7 +34,7 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
       const result = await askWithSearch(context, question);
       setResponse(result);
     } catch (err: any) {
-      setError(`An error occurred: ${err.message}`);
+      setError(`Une erreur s'est produite : ${err.message}`);
     } finally {
       setIsLoading(false);
       setQuestion('');
@@ -57,21 +57,23 @@ const GeminiPlayground: React.FC<GeminiPlaygroundProps> = ({ context, placeholde
           placeholder={placeholder}
           className="w-full bg-slate-700/50 text-slate-200 placeholder-slate-500 rounded-md p-2 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
           disabled={isLoading}
+          aria-label="Question pour Gemini"
         />
         <button
           type="submit"
           disabled={isLoading || !question.trim()}
           className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+          aria-label="Poser la question à Gemini"
         >
           {isLoading ? (
-            <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin" role="status" aria-label="Chargement"></div>
           ) : (
-            'Ask'
+            'Demander'
           )}
         </button>
       </form>
 
-      {error && <p className="text-red-400 mt-4">{error}</p>}
+      {error && <p className="text-red-400 mt-4" role="alert" aria-live="assertive">{error}</p>}
       
       {(isLoading || response) && (
         <div className="mt-4 border-t border-slate-700 pt-4">

@@ -37,9 +37,15 @@ const SvgGenerator: React.FC = () => {
 
     const handleGenerate = async () => {
         if (!prompt.trim()) {
-            setError('Please enter a description.');
+            setError('Veuillez entrer une description.');
             return;
         }
+        
+        if (!isApiKeyConfigured()) {
+            setError('Clé API Gemini non configurée. Veuillez définir VITE_GEMINI_API_KEY dans votre fichier .env.local.');
+            return;
+        }
+        
         setIsLoading(true);
         setError('');
         setGeneratedSvg('');
@@ -51,10 +57,10 @@ const SvgGenerator: React.FC = () => {
                 const safe = DOMPurify.sanitize(svgResult, { USE_PROFILES: { svg: true } });
                 setGeneratedSvg(safe);
             } else {
-                throw new Error("The AI did not return valid SVG. Please try again with a more specific prompt.");
+                throw new Error("L'IA n'a pas retourné de SVG valide. Veuillez réessayer avec une description plus précise.");
             }
         } catch (e: any) {
-            setError(`Generation failed: ${e.message}`);
+            setError(`Échec de la génération : ${e.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -65,6 +71,9 @@ const SvgGenerator: React.FC = () => {
         navigator.clipboard.writeText(generatedSvg).then(() => {
             setCopySuccess(true);
             setTimeout(() => setCopySuccess(false), 2000);
+        }).catch((err) => {
+            console.error('Erreur lors de la copie:', err);
+            setError('Impossible de copier dans le presse-papiers');
         });
     };
 
@@ -73,7 +82,7 @@ const SvgGenerator: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 flex items-center gap-2">
                 <GeminiIcon /> AI SVG Generator
             </h2>
-            <p className="text-slate-400 mb-4 text-sm">Describe an image, icon, or logo, and let Gemini Pro bring it to life as an SVG.</p>
+            <p id="svg-generator-description" className="text-slate-400 mb-4 text-sm">Describe an image, icon, or logo, and let Gemini Pro bring it to life as an SVG.</p>
 
             {!isApiKeyConfigured() && (
                 <ApiKeyNotice className="mb-4" />
@@ -88,26 +97,29 @@ const SvgGenerator: React.FC = () => {
                     className="w-full bg-slate-700/50 text-slate-200 placeholder-slate-500 rounded-lg p-3 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
                     disabled={isLoading}
                     onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                    aria-label="Description de l'image SVG à générer"
+                    aria-describedby="svg-generator-description"
                 />
                 <button
                     onClick={handleGenerate}
                     disabled={isLoading}
                     className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    aria-label="Générer le SVG à partir de la description"
                 >
-                    {isLoading ? 'Generating...' : 'Generate'}
+                    {isLoading ? 'Génération...' : 'Générer'}
                 </button>
             </div>
             
-            {error && <p className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4">{error}</p>}
+            {error && <p className="text-red-400 bg-red-900/50 border border-red-700 rounded-md p-3 text-center my-4" role="alert" aria-live="assertive">{error}</p>}
             
             {(isLoading || generatedSvg) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     <div>
                         <h3 className="font-semibold text-slate-200 mb-2">Generated Preview</h3>
-                        <div className="bg-grid rounded-md border border-slate-700 h-64 p-2 flex items-center justify-center">
+                        <div className="bg-grid rounded-md border border-slate-700 h-64 p-2 flex items-center justify-center" role="img" aria-label="Aperçu du SVG généré">
                             {isLoading ? (
                                 <div className="text-center">
-                                    <div className="w-8 h-8 mx-auto border-4 border-t-transparent border-cyan-400 rounded-full animate-spin"></div>
+                                    <div className="w-8 h-8 mx-auto border-4 border-t-transparent border-cyan-400 rounded-full animate-spin" role="status" aria-label="Génération en cours"></div>
                                     <p className="text-slate-400 mt-4 animate-pulse">{loadingMessage}</p>
                                 </div>
                             ) : (
@@ -118,11 +130,11 @@ const SvgGenerator: React.FC = () => {
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="font-semibold text-slate-200">SVG Code</h3>
-                            <button onClick={handleCopy} className="text-xs bg-slate-600 hover:bg-slate-500 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">
-                                {copySuccess ? 'Copied!' : 'Copy'}
+                            <button onClick={handleCopy} className="text-xs bg-slate-600 hover:bg-slate-500 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200" aria-label="Copier le code SVG">
+                                {copySuccess ? 'Copié !' : 'Copier'}
                             </button>
                         </div>
-                        <pre className="bg-gray-900 text-sm text-cyan-300 p-3 rounded-md h-64 overflow-auto">
+                        <pre className="bg-gray-900 text-sm text-cyan-300 p-3 rounded-md h-64 overflow-auto" role="region" aria-label="Code SVG généré">
                             <code>{isLoading ? '...' : generatedSvg.trim()}</code>
                         </pre>
                     </div>

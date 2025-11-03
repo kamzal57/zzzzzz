@@ -53,6 +53,15 @@ function getAi(): GoogleGenAI {
  * @returns The full GenerateContentResponse object.
  */
 export async function askWithSearch(context: string, question: string): Promise<GenerateContentResponse> {
+  // Validate inputs
+  if (!context || !question || typeof context !== 'string' || typeof question !== 'string') {
+    throw new Error('Le contexte et la question doivent être des chaînes de caractères valides.');
+  }
+  
+  if (question.length > 2000) {
+    throw new Error('La question est trop longue. Veuillez limiter à 2000 caractères.');
+  }
+  
   const model = 'gemini-2.5-flash';
   const prompt = `
     You are an expert on SVG and web animation.
@@ -84,6 +93,15 @@ export async function askWithSearch(context: string, question: string): Promise<
  * @returns The explanation text in Markdown.
  */
 export async function explainSvg(svgCode: string): Promise<string> {
+  // Validate inputs
+  if (!svgCode || typeof svgCode !== 'string') {
+    throw new Error('Le code SVG doit être une chaîne de caractères valide.');
+  }
+  
+  if (svgCode.length > 50000) {
+    throw new Error('Le code SVG est trop long. Veuillez limiter à 50 000 caractères.');
+  }
+  
   const model = 'gemini-2.5-flash';
   const prompt = `
     You are an expert SVG developer. Explain the following SVG code to a beginner.
@@ -106,6 +124,15 @@ export async function explainSvg(svgCode: string): Promise<string> {
  * @returns A string containing the raw SVG code.
  */
 export async function generateSvg(prompt: string): Promise<string> {
+  // Validate inputs
+  if (!prompt || typeof prompt !== 'string') {
+    throw new Error('La description doit être une chaîne de caractères valide.');
+  }
+  
+  if (prompt.length > 1000) {
+    throw new Error('La description est trop longue. Veuillez limiter à 1000 caractères.');
+  }
+  
   const model = 'gemini-2.5-pro';
   const fullPrompt = `
     You are an expert SVG designer. Create a complete, valid SVG code based on the following description.
