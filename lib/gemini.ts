@@ -33,12 +33,14 @@ export function isApiKeyConfigured(): boolean {
 /**
  * Lazy-initializes the GoogleGenAI instance.
  * @returns An initialized GoogleGenAI instance.
+ * @throws Error if API key is not configured
  */
 function getAi(): GoogleGenAI {
   if (!ai) {
     const apiKey = getApiKey();
     if (!apiKey) {
       console.warn("Gemini API key missing. Set VITE_GEMINI_API_KEY in your .env.local.");
+      // Still initialize with empty key to avoid null checks, but functions will fail
     }
     ai = new GoogleGenAI({ apiKey: apiKey ?? '' });
   }
@@ -51,8 +53,13 @@ function getAi(): GoogleGenAI {
  * @param context - The context from the lesson.
  * @param question - The user's question.
  * @returns The full GenerateContentResponse object.
+ * @throws Error if API key is not configured or request fails
  */
 export async function askWithSearch(context: string, question: string): Promise<GenerateContentResponse> {
+  if (!isApiKeyConfigured()) {
+    throw new Error('API key not configured. Please set VITE_GEMINI_API_KEY in .env.local');
+  }
+
   const model = 'gemini-2.5-flash';
   const prompt = `
     You are an expert on SVG and web animation.
@@ -68,22 +75,31 @@ export async function askWithSearch(context: string, question: string): Promise<
     Question: ${question}
   `;
 
-  const response = await getAi().models.generateContent({
-    model,
-    contents: prompt,
-    config: {
-      tools: [{googleSearch: {}}],
-    },
-  });
-  return response;
+  try {
+    const response = await getAi().models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        tools: [{googleSearch: {}}],
+      },
+    });
+    return response;
+  } catch (error: any) {
+    throw new Error(`Failed to get AI response: ${error.message || 'Unknown error'}`);
+  }
 }
 
 /**
  * Explains a piece of SVG code for a beginner.
  * @param svgCode - The SVG code string to explain.
  * @returns The explanation text in Markdown.
+ * @throws Error if API key is not configured or request fails
  */
 export async function explainSvg(svgCode: string): Promise<string> {
+  if (!isApiKeyConfigured()) {
+    throw new Error('API key not configured. Please set VITE_GEMINI_API_KEY in .env.local');
+  }
+
   const model = 'gemini-2.5-flash';
   const prompt = `
     You are an expert SVG developer. Explain the following SVG code to a beginner.
@@ -96,16 +112,25 @@ export async function explainSvg(svgCode: string): Promise<string> {
     ${svgCode}
     ---
   `;
-  const response = await getAi().models.generateContent({ model, contents: prompt });
-  return response.text;
+  try {
+    const response = await getAi().models.generateContent({ model, contents: prompt });
+    return response.text;
+  } catch (error: any) {
+    throw new Error(`Failed to explain SVG: ${error.message || 'Unknown error'}`);
+  }
 }
 
 /**
  * Generates SVG code from a text prompt using the most powerful model.
  * @param prompt - The user's description of the desired SVG.
  * @returns A string containing the raw SVG code.
+ * @throws Error if API key is not configured or request fails
  */
 export async function generateSvg(prompt: string): Promise<string> {
+  if (!isApiKeyConfigured()) {
+    throw new Error('API key not configured. Please set VITE_GEMINI_API_KEY in .env.local');
+  }
+
   const model = 'gemini-2.5-pro';
   const fullPrompt = `
     You are an expert SVG designer. Create a complete, valid SVG code based on the following description.
@@ -120,12 +145,16 @@ export async function generateSvg(prompt: string): Promise<string> {
     Description: "${prompt}"
   `;
 
-  const response = await getAi().models.generateContent({
-    model,
-    contents: fullPrompt,
-    config: {
-      thinkingConfig: { thinkingBudget: 32768 }
-    }
-  });
-  return response.text;
+  try {
+    const response = await getAi().models.generateContent({
+      model,
+      contents: fullPrompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 32768 }
+      }
+    });
+    return response.text;
+  } catch (error: any) {
+    throw new Error(`Failed to generate SVG: ${error.message || 'Unknown error'}`);
+  }
 }

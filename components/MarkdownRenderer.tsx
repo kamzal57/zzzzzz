@@ -7,11 +7,17 @@ interface MarkdownRendererProps {
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   const renderContent = () => {
-    const lines = content.split('\n');
+    // Sanitize the entire content first as a safety measure
+    const sanitizedContent = DOMPurify.sanitize(content, { 
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'ul', 'ol', 'li'],
+      ALLOWED_ATTR: []
+    });
+    
+    const lines = sanitizedContent.split('\n');
     const elements = [];
     let inCodeBlock = false;
     let codeBlockContent = '';
-    let listItems = [];
+    let listItems: JSX.Element[] = [];
 
     const flushList = () => {
         if (listItems.length > 0) {
