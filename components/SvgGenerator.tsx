@@ -73,7 +73,14 @@ const SvgGenerator: React.FC = () => {
             setTimeout(() => setCopySuccess(false), 2000);
         }).catch((err) => {
             console.error('Erreur lors de la copie:', err);
-            setError('Impossible de copier dans le presse-papiers');
+            // Provide more specific error message
+            if (err.name === 'NotAllowedError') {
+                setError('Permission refusée. Veuillez autoriser l\'accès au presse-papiers.');
+            } else if (err.name === 'NotSupportedError') {
+                setError('Votre navigateur ne supporte pas la copie dans le presse-papiers.');
+            } else {
+                setError('Impossible de copier dans le presse-papiers: ' + err.message);
+            }
         });
     };
 

@@ -54,8 +54,12 @@ function getAi(): GoogleGenAI {
  */
 export async function askWithSearch(context: string, question: string): Promise<GenerateContentResponse> {
   // Validate inputs
-  if (!context || !question || typeof context !== 'string' || typeof question !== 'string') {
+  if (typeof context !== 'string' || typeof question !== 'string') {
     throw new Error('Le contexte et la question doivent être des chaînes de caractères valides.');
+  }
+  
+  if (context.trim() === '' || question.trim() === '') {
+    throw new Error('Le contexte et la question ne peuvent pas être vides.');
   }
   
   if (question.length > 2000) {
@@ -94,8 +98,12 @@ export async function askWithSearch(context: string, question: string): Promise<
  */
 export async function explainSvg(svgCode: string): Promise<string> {
   // Validate inputs
-  if (!svgCode || typeof svgCode !== 'string') {
+  if (typeof svgCode !== 'string') {
     throw new Error('Le code SVG doit être une chaîne de caractères valide.');
+  }
+  
+  if (svgCode.trim() === '') {
+    throw new Error('Le code SVG ne peut pas être vide.');
   }
   
   if (svgCode.length > 50000) {
@@ -125,8 +133,12 @@ export async function explainSvg(svgCode: string): Promise<string> {
  */
 export async function generateSvg(prompt: string): Promise<string> {
   // Validate inputs
-  if (!prompt || typeof prompt !== 'string') {
+  if (typeof prompt !== 'string') {
     throw new Error('La description doit être une chaîne de caractères valide.');
+  }
+  
+  if (prompt.trim() === '') {
+    throw new Error('La description ne peut pas être vide.');
   }
   
   if (prompt.length > 1000) {

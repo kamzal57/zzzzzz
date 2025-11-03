@@ -55,11 +55,30 @@ const Optimizer: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             const text = e.target?.result as string;
-            if (!text || !text.trim().includes('<svg')) {
-                setError('Le fichier ne contient pas de SVG valide.');
-                return;
+            
+            // More robust SVG validation using DOMParser
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'image/svg+xml');
+                
+                // Check for parsing errors
+                const parseError = doc.querySelector('parsererror');
+                if (parseError) {
+                    setError('Le fichier ne contient pas de SVG valide: erreur de parsing XML.');
+                    return;
+                }
+                
+                // Verify it actually contains an SVG root element
+                const svgElement = doc.querySelector('svg');
+                if (!svgElement) {
+                    setError('Le fichier ne contient pas d\'élément SVG valide.');
+                    return;
+                }
+                
+                setOriginalSvg(text);
+            } catch (err) {
+                setError('Erreur lors de la validation du SVG: ' + (err as Error).message);
             }
-            setOriginalSvg(text);
         };
         reader.onerror = () => {
             setError('Erreur lors de la lecture du fichier.');
