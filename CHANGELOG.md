@@ -12,6 +12,10 @@
   - Smooth scroll animation
   - Only visible after scrolling 400px down the page
 
+- **PWA Support**: Added web app manifest for Progressive Web App capabilities
+  - Install as standalone app on mobile devices
+  - Custom theme colors matching the app design
+
 - **Deployment Configurations**:
   - Added `netlify.toml` for Netlify deployment with security headers and caching
   - Added `vercel.json` for Vercel deployment configuration
